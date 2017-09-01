@@ -47,7 +47,15 @@ function Tags(jsonData) {
       return tag.name === name;
     };
 
-    var tag = tags.find(predicate);
+    // GAS doesn't support Array.find
+    var tag;
+    for (var i = 0; i < tags.length; ++i) {
+      if ( predicate(tags[i]) ) {
+        tag = tags[i];
+        break;
+      }
+    }
+
     if ( null == tag ) {
       tag = {name: name, count: 1, updatedTime : new Date().getTime()};
       tags.push(tag);
@@ -77,7 +85,15 @@ function Tags(jsonData) {
       return tag.name === name;
     };
 
-    var idx = tags.findIndex(predicate);
+    // GAS doesn't support Array.findIndex.
+    var idx = -1;
+    for (var i = 0; i < tags.length; ++i) {
+      if ( predicate(tags[i]) ) {
+        idx = i;
+        break;
+      }
+    }
+
     if ( -1 != idx ) {
       var tag = tags[idx];
       tag.count--;
@@ -87,6 +103,28 @@ function Tags(jsonData) {
     }
 
     return null != tag;
+  }
+
+  /**
+   * Returns a copy of the tags array sorted by the reference count in
+   * descending order.
+   * @return {Array.<{name: string, count: number, updatedDate: number}}
+   */
+  this.getTagsSortedByPopularity = function() {
+    return tags.slice(0).sort(function(a, b) {
+        return b.count - a.count;
+    });
+  }
+
+  /**
+   * Returns a copy of the tags array sorted by the updated time in descending
+   * order.
+   * @return {Array.<{name: string, count: number, updatedDate: number}}
+   */
+  this.getTagsSortedByMru = function() {
+    return tags.slice(0).sort(function(a, b) {
+        return b.updatedTime - a.updatedTime;
+    });
   }
 }
 
