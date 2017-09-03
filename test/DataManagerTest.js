@@ -24,7 +24,7 @@ describe('DataManager', function() {
     assert.exists(entry.creationTime);
     assert.notExists(entry.updateTime);
 
-    assert.deepEqual(tags, dm.getTags());
+    assert.equal(2, dm.getTagManager().getTagCount());
   });
 
   it('addEntry - multiple calls - maintains unique list of tags sorted by MRU', 
@@ -37,8 +37,30 @@ describe('DataManager', function() {
     dm.addEntry("entry #2", tagList2);
 
     assert.equal(2, dm.getEntryCount());
-    assert.equal(4, dm.getTags().length);
-    assert.equal('test', dm.getTags()[0]);
+    assert.equal(4, dm.getTagManager().getTagCount());
   });
 
+  it('findEntriesByTag - zero match  - returns empty array', function() {
+    var content = "testinz";
+    var tagList1 = ['test', 'nada'];
+    dm.addEntry(content, tagList1);
+
+    var result = dm.findEntriesByTag('invalid tag');
+    assert.equal(0, result.length);
+  });
+
+  it('findEntriesByTag - has match  - returns non-empty array', function() {
+    var content = "testinz";
+    var tagList1 = ['test', 'nada'];
+    dm.addEntry(content, tagList1);
+
+    var tagList2 = ['religion', 'politics', 'test'];
+    dm.addEntry("entry #2", tagList2);
+
+    var result = dm.findEntriesByTag(tagList1[0]);
+    assert.equal(2, result.length);
+
+    result = dm.findEntriesByTag(tagList1[1]);
+    assert.equal(1, result.length);
+  });
 });

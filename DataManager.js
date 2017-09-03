@@ -1,3 +1,5 @@
+var Tags = require('./Tags.js');
+
 /**
  * Manages the main data structure.
  * @constructor
@@ -8,7 +10,7 @@ function DataManager(jsonData) {
   
   if (typeof root.entries === 'undefined') {
     root.entries = [];
-    root.tags = [];
+    root.tags = new Tags();
   }
   
   /**
@@ -18,12 +20,12 @@ function DataManager(jsonData) {
     return root.entries.length;
   }
 
-  /**
-   * @return {array} of tags sorted by most recently used
+	/**
+   * @return {Tags}
    */
-  this.getTags = function() {
-    return root.tags;
-  };
+	this.getTagManager = function() {
+		return root.tags;
+	}
   
   /**
    * Adds a new entry.
@@ -41,19 +43,30 @@ function DataManager(jsonData) {
     root.entries.push(entry);
 
     tags.forEach(function(item, index, array) {
-      var idx = root.tags.indexOf(item);
-      if ( idx != -1 ) {
-        var firstElem = root.tags[0];
-        root.tags[0] = item;
-        root.tags[idx] = firstElem;
-      }
-      else {
-        root.tags.push(item);
-      }
+      root.tags.addTag(item);
     });
 
     return entry;
   }
+
+  /**
+   * Returns an array of the entries matching the given parameters..
+   * @type {Array.<object>}
+   */
+  this.findEntriesByTag = function(tagName, offset, count) {
+    var result = [];
+    // GAS doesn''t support Array.filter
+    root.entries.forEach(function(item) {
+        for (var i = 0; i < item.tags.length; ++i) {
+          if ( item.tags[i] == tagName ) {
+            result.push(item);
+            break;
+          }
+        }
+    });
+
+    return result;
+  };
 }
 
 module.exports = DataManager;
