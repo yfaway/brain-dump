@@ -1,6 +1,6 @@
 var assert = require('chai').assert;
-//var assert = require('assert');
 var DataManager = require('../DataManager.js');
+var TestConstants = require('./TestConstants.js');
 
 describe('DataManager', function() {
   var dm;
@@ -9,17 +9,62 @@ describe('DataManager', function() {
     dm = new DataManager({});
   });
 
-  it('ctor - correct params - inits correctly', function() {
+  it('ctor, no parameter, inits correctly', function() {
+    dm = new DataManager();
     assert.equal(0, dm.getEntryCount());
   });
 
-  it('addEntry - validParams - returns successfully', function() {
-    var content = "testinz";
+  it('ctor, empty object parameter, inits correctly', function() {
+    dm = new DataManager({});
+    assert.equal(0, dm.getEntryCount());
+  });
+
+  it('addEntry, wrong type, throws exception', function() {
+    var fcn = function() { dm.addEntry(3); };
+    assert.throws(fcn, "Expect string content");
+  })
+
+  it('addEntry, empty content, throws exception', function() {
+    var fcn = function() { dm.addEntry(''); };
+    assert.throws(fcn, "Expect non-empty content");
+  })
+
+  it('addEntry, wrong tags type, throws exception', function() {
+    var fcn = function() { dm.addEntry('content', 3); };
+    assert.throws(fcn, "Expect non-empty tags array");
+  })
+
+  it('addEntry, undefined tags type, throws exception', function() {
+    var fcn = function() { dm.addEntry('content'); };
+    assert.throws(fcn, "Expect non-empty tags array");
+  })
+
+  it('addEntry, empty tags array, throws exception', function() {
+    var fcn = function() { dm.addEntry('content', []); };
+    assert.throws(fcn, "Expect non-empty tags array");
+  })
+
+  it('addEntry, tags array contains null name, throws exception', function() {
+    var fcn = function() { dm.addEntry('content', ['a', null]); };
+    assert.throws(fcn, "Tags array must contain non-empty string names");
+  })
+
+  it('addEntry, tags array contains non-string value, throws exception', function() {
+    var fcn = function() { dm.addEntry('content', ['a', 3]); };
+    assert.throws(fcn, "Tags array must contain non-empty string names");
+  })
+
+  it('addEntry, tags array contains empty name, throws exception', function() {
+    var fcn = function() { dm.addEntry('content', ['a', '', 'b']); };
+    assert.throws(fcn, "Tags array must contain non-empty string names");
+  })
+
+  it('addEntry, validParams, returns successfully', function() {
     var tags = ['test', 'nada'];
-    var entry = dm.addEntry(content, tags);
+    var entry = dm.addEntry(TestConstants.CONTENT1, tags);
 
     assert.equal(1, dm.getEntryCount());
-    assert.equal(content, entry.content);
+    assert.equal(TestConstants.CONTENT1, entry.content);
     assert.equal(tags, entry.tags);
     assert.exists(entry.creationTime);
     assert.notExists(entry.updateTime);
@@ -27,11 +72,10 @@ describe('DataManager', function() {
     assert.equal(2, dm.getTagManager().getTagCount());
   });
 
-  it('addEntry - multiple calls - maintains unique list of tags sorted by MRU', 
+  it('addEntry, multiple calls, maintains unique list of tags sorted by MRU', 
       function() {
-    var content = "testinz";
     var tagList1 = ['test', 'nada'];
-    dm.addEntry(content, tagList1);
+    dm.addEntry(TestConstants.CONTENT1, tagList1);
 
     var tagList2 = ['religion', 'politics', 'test'];
     dm.addEntry("entry #2", tagList2);
@@ -40,19 +84,17 @@ describe('DataManager', function() {
     assert.equal(4, dm.getTagManager().getTagCount());
   });
 
-  it('findEntriesByTag - zero match  - returns empty array', function() {
-    var content = "testinz";
+  it('findEntriesByTag, zero match , returns empty array', function() {
     var tagList1 = ['test', 'nada'];
-    dm.addEntry(content, tagList1);
+    dm.addEntry(TestConstants.CONTENT1, tagList1);
 
     var result = dm.findEntriesByTag('invalid tag');
     assert.equal(0, result.length);
   });
 
-  it('findEntriesByTag - has match  - returns non-empty array', function() {
-    var content = "testinz";
+  it('findEntriesByTag, has match , returns non-empty array', function() {
     var tagList1 = ['test', 'nada'];
-    dm.addEntry(content, tagList1);
+    dm.addEntry(TestConstants.CONTENT1, tagList1);
 
     var tagList2 = ['religion', 'politics', 'test'];
     dm.addEntry("entry #2", tagList2);

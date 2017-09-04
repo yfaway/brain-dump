@@ -1,12 +1,21 @@
-var Tags = require('./Tags.js');
+var Tags;
+
+if (typeof DriveApp == "undefined") {
+  Tags = require('./Tags.js');
+}
 
 /**
  * Manages the main data structure.
  * @constructor
- * @param {object} jsonData - the backend data; can be {} for new data.
+ * @param {object} jsonData - the backend data; can be undefined or {} for new
+ *     data.
  */
 function DataManager(jsonData) {
   var root = jsonData;
+
+  if (typeof root === 'undefined') {
+    root = {};
+  }
   
   if (typeof root.entries === 'undefined') {
     root.entries = [];
@@ -34,6 +43,25 @@ function DataManager(jsonData) {
    * @return {object}
    */
   this.addEntry = function(content, tags) {
+    if ( typeof content !== 'string' ) {
+      throw "Expect string content";
+    }
+
+    if ( null == content || content.length == 0 ) {
+      throw "Expect non-empty content";
+    }
+
+    if (! Array.isArray(tags) || tags.length == 0 ) {
+      throw "Expect non-empty tags array";
+    }
+
+    tags.forEach(function(name) {
+        if ( typeof name !== 'string'
+            || '' == name ) {
+        throw "Tags array must contain non-empty string names";
+        }
+    });
+
     var entry = { 
       content: content,
       tags: tags,
@@ -69,4 +97,6 @@ function DataManager(jsonData) {
   };
 }
 
-module.exports = DataManager;
+if (typeof DriveApp == "undefined") {
+  module.exports = DataManager;
+}

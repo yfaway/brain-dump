@@ -9,9 +9,9 @@
       <p/>
       Tags:
       <br />
-      <input type="text" name="tags" size="40" />
+      <input type="text" id="tags" size="40" />
       <br />
-      <input type="submit" onclick="handleSubmit(); return false;" />
+      <input type="submit" onclick="onAddEntry(); return false;" />
     </form>  
     <div id="tags">
     </div>
@@ -20,7 +20,8 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>  
 <script>
 $(function() {
-  google.script.run.withSuccessHandler(displayTags).getTags();
+  google.script.run.withSuccessHandler(displayTags)
+    .getTagsSortedByPopularity();
 });
 
 function displayTags(tags) {
@@ -30,9 +31,10 @@ function displayTags(tags) {
 }
 
 // The code in this function runs when the page is loaded.
-function handleSubmit() {
+function onAddEntry() {
+  var tagsArray = $("#content").val().split(' ');
   google.script.run.withSuccessHandler(showThings)
-      .addNewContent($("#content").val());
+      .addEntry($("#content").val(), tagsArray);
   return false;
 };
 

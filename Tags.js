@@ -128,4 +128,6 @@ function Tags(jsonData) {
   }
 }
 
-module.exports = Tags;
+if (typeof DriveApp == "undefined") {
+  module.exports = Tags;
+}
