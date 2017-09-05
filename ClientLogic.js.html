@@ -1,0 +1,81 @@
+<script>
+$(function() {
+  google.script.run.withSuccessHandler(renderTagList)
+      .getTagsSortedByPopularity();
+});
+
+String.prototype.format = function (){
+    var args = arguments;
+    return this.replace(/\{\{|\}\}|\{(\d+)\}/g, function (curlyBrack, index) {
+        return ((curlyBrack == "{{") ? "{" : ((curlyBrack == "}}") ? "}" : args[index]));
+    });
+};
+
+/**
+ * Displays each tag as an html link. Upon click, request the entries matching
+ * the tags and display it in the entry area.
+ */
+function renderTagList(tags) {
+  tags.forEach(function(tag) {
+    renderASingleTag($("#tags-list"), tag.name, tag.count);
+  });
+}
+
+// The code in this function runs when the page is loaded.
+function onAddEntry() {
+  var tagsArray = $("#content").val().split(' ');
+  google.script.run.withSuccessHandler(showThings)
+    .addEntry($("#content").val(), tagsArray);
+  return false;
+};
+
+function showThings(things) {
+  alert(things);
+}
+
+/**
+ * Clears the entry div container and renders the provided entries.
+ * @param entries
+ */
+function renderEntries(entries) {
+  $("#entry-list").html('');
+
+  entries.forEach(function(entry) {
+
+    $("#entry-list").append('<div>');
+
+    var html = "<p id='entry-content'>{0}</p>".format(entry.content);
+    $("#entry-list").append(html);
+
+    $("#entry-list").append('Tags: ');
+    entry.tags.forEach(function(name) {
+      renderASingleTag($("#entry-list"), name);
+    });
+
+    html = "<br />{0}<hr />".format(new Date(entry.creationTime).toLocaleString());
+    $("#entry-list").append(html);
+    $("#entry-list").append('<hr/>');
+    $("#entry-list").append('</div>');
+  });
+}
+
+function renderASingleTag(container, tagName, tagCount) {
+  var id = 'tag-' + tagName;
+
+  var html;
+  if (typeof tagCount != 'undefined') {
+    html = "<a href='' id='{0}'>{1} ({2})</a> ".format(id, tagName, tagCount); 
+  }
+  else {
+    html = "<a href='' id='{0}'>{1}</a> ".format(id, tagName); 
+  }
+  container.append(html);
+
+  $("#" + id).click(function() {
+      google.script.run
+        .withSuccessHandler(renderEntries)
+        .findEntriesByTag(tagName);
+      return false;
+  });
+}
+</script>  

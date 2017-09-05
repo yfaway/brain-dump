@@ -11,37 +11,47 @@ var FILE_NAME = "brain-dump.json";
  * The business layer that response to AJAX calls. In the GAS environment
  * AJAX calls are done through the google.script.run API.
  */
-function AjaxBusiness(jsonData) {
 
-  /**
-   * Returns a list of tags sorted by popularity.
-   * @return {Array.<{name: string, count: number, updatedDate: number}}
-   */
-  this.getTagsSortedByPopularity = function() {
-    var dm = new DataManager();
+/**
+ * Returns a list of tags sorted by popularity.
+ * @return {Array.<{name: string, count: number, updatedDate: number}}
+ */
+function getTagsSortedByPopularity() {
+  return getDataManager().getTagManager().getTagsSortedByPopularity();
+}
 
-    var content = "testinz";
-    var tagList1 = ['test', 'nada'];
-    dm.addEntry(content, tagList1);
+/**
+ * Adds a new entry. Parameters validation is deferred.
+ * @param {string} content - the entry content
+ * @param {Array.<string>} - the list of tags
+ * @return {name: string, tags: Array.<string>}
+ */
+function addEntry(content, tags) {
+  return getDataManager().addEntry(content, tags);
+}
 
-    var tagList2 = ['religion', 'politics', 'test'];
-    dm.addEntry("entry #2", tagList2);
+function getDataManager() {
+  var dm = new DataManager();
 
-    return dm.getTagManager().getTagsSortedByPopularity();
-  }
+  var content = "testinz";
+  var tagList1 = ['math-scores', 'elementary-school', 'education'];
+  dm.addEntry('Gabrielle Roy school performance for the 2015-2016 school years',
+      tagList1);
 
-  /**
-   * Adds a new entry. Parameters validation is deferred.
-   * @param {string} content - the entry content
-   * @param {Array.<string>} - the list of tags
-   * @return {name: string, tags: Array.<string>}
-   */
-  this.addEntry = function(content, tags) {
-    var dm = new DataManager();
-    return dm.addEntry(content, tags);
-  }
-};
- 
+  var tagList2 = ['crypto-currency', 'learning'];
+  dm.addEntry("Read more on crypto currencies.", tagList2);
+
+  return dm;
+}
+
+/**
+ * Returns an array of the entries matching the given parameters..
+ * @type {Array.<object>}
+ */
+function findEntriesByTag(tagName, offset, count) {
+  return getDataManager().findEntriesByTag(tagName, offset, count);
+}
+
 
 function main() {
 //  var folder = initFolder();
@@ -62,23 +72,9 @@ function main() {
   //Logger.log(JSON.stringify(entry));
 }
 
-function doGet() {
-
-  var tm = new Tags();
-  tm.addTag('testinz');
-  tm.addTag('business');
-  tm.addTag('politic');
-  
-  var t = HtmlService.createTemplateFromFile('index');
-  t.data = tm.getTagsSortedByPopularity();
-  t.data = tm.getTagsSortedByPopularity();
-  
-  var output = t.evaluate();
-  output.addMetaTag('viewport', 'width=device-width, initial-scale=1');
-
-  return output;
-}
-
 if (typeof DriveApp == "undefined") {
-  module.exports = AjaxBusiness;
+  module.exports = { 
+    'getTagsSortedByPopularity': getTagsSortedByPopularity,
+    'addEntry': addEntry,
+  };
 }

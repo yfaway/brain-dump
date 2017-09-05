@@ -13,33 +13,12 @@
       <br />
       <input type="submit" onclick="onAddEntry(); return false;" />
     </form>  
-    <div id="tags">
-    </div>
+
+    <div id="tags-list"></div>
+
+    <div id="entry-list"></div>
   </body>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>  
-<script>
-$(function() {
-  google.script.run.withSuccessHandler(displayTags)
-    .getTagsSortedByPopularity();
-});
-
-function displayTags(tags) {
-  tags.forEach(function(tag) {
-    $("#tags").append("<a href='http://google.com'>" + tag.name + "</a> ");
-  });
-}
-
-// The code in this function runs when the page is loaded.
-function onAddEntry() {
-  var tagsArray = $("#content").val().split(' ');
-  google.script.run.withSuccessHandler(showThings)
-      .addEntry($("#content").val(), tagsArray);
-  return false;
-};
-
-function showThings(things) {
-  alert(things);
-}
-</script>  
+  <?!= include('ClientLogic.js'); ?>
 </html>
