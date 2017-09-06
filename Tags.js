@@ -2,7 +2,10 @@
  * Manages the list of tags. Each tag is associated with the reference count.
  * When the reference gets down to zero, the tag is removed from the array.
  * @constructor
- * @param {object} jsonData - the backend data; can be {} for new data.
+ * @param {object|string} jsonData - the backend data; can be {} for new data.
+ *     If the value is a string, it will be converted to an object using
+ *     JSON.parse.
+ * @throws SyntaxError if {@link jsonData} is invalid
  */
 function Tags(jsonData) {
   /**
@@ -12,6 +15,9 @@ function Tags(jsonData) {
 
   if (typeof jsonData === 'undefined') {
     tags = [];
+  }
+  else if (typeof jsonData === 'string') {
+    tags = JSON.parse(jsonData);
   }
   else if (! Array.isArray(jsonData) ) {
     throw "Expect an array of tag objects";
@@ -126,6 +132,14 @@ function Tags(jsonData) {
         return b.updatedTime - a.updatedTime;
     });
   }
+
+  /**
+   * Transform the backed data into a JSON string.
+   * @return {string}
+   */
+  this.toString = function() {
+    return JSON.stringify(tags);
+  };
 }
 
 if (typeof DriveApp == "undefined") {

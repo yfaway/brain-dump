@@ -7,17 +7,30 @@ if (typeof DriveApp == "undefined") {
 /**
  * Manages the main data structure.
  * @constructor
- * @param {object} jsonData - the backend data; can be undefined or {} for new
+ * @param {object|string} jsonData - the backend data; can be undefined or {} for new
  *     data.
  */
-function DataManager(jsonData) {
-  var root = jsonData;
+function InMemoryStorage(jsonData) {
+  var root;
 
-  if (typeof root === 'undefined') {
+  if ('undefined' === typeof jsonData) {
     root = {};
   }
+  else if ('string' === typeof jsonData) {
+    var tmpStructure = JSON.parse(jsonData);
+    root = { 
+      entries: tmpStructure.entries,
+      tags: new Tags(tmpStructure.tagsString),
+    };
+  }
+  else if ('object' === typeof jsonData) {
+    root = jsonData;
+  }
+  else {
+    throw "Unexpected data type";
+  }
   
-  if (typeof root.entries === 'undefined') {
+  if ('undefined' === typeof root.entries) {
     root.entries = [];
     root.tags = new Tags();
   }
@@ -95,8 +108,21 @@ function DataManager(jsonData) {
 
     return result;
   };
+
+  /**
+   * Transform the backed data into a JSON string.
+   * @return {string}
+   */
+  this.toString = function() {
+    var tmpStructure = {
+      entries: root.entries,
+      tagsString: root.tags.toString(),
+    };
+
+    return JSON.stringify(tmpStructure);
+  };
 }
 
 if (typeof DriveApp == "undefined") {
-  module.exports = DataManager;
+  module.exports = InMemoryStorage;
 }

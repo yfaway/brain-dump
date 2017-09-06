@@ -1,21 +1,21 @@
 var assert = require('chai').assert;
-var DataManager = require('../DataManager.js');
+var InMemoryStorage = require('../InMemoryStorage.js');
 var TestConstants = require('./TestConstants.js');
 
-describe('DataManager', function() {
+describe('InMemoryStorage', function() {
   var dm;
 
   beforeEach(function() {
-    dm = new DataManager({});
+    dm = new InMemoryStorage({});
   });
 
   it('ctor, no parameter, inits correctly', function() {
-    dm = new DataManager();
+    dm = new InMemoryStorage();
     assert.equal(0, dm.getEntryCount());
   });
 
   it('ctor, empty object parameter, inits correctly', function() {
-    dm = new DataManager({});
+    dm = new InMemoryStorage({});
     assert.equal(0, dm.getEntryCount());
   });
 
@@ -97,7 +97,7 @@ describe('DataManager', function() {
     dm.addEntry(TestConstants.CONTENT1, tagList1);
 
     var tagList2 = ['religion', 'politics', 'test'];
-    dm.addEntry("entry #2", tagList2);
+    dm.addEntry(TestConstants.CONTENT2, tagList2);
 
     var result = dm.findEntriesByTag(tagList1[0]);
     assert.equal(2, result.length);
@@ -105,4 +105,21 @@ describe('DataManager', function() {
     result = dm.findEntriesByTag(tagList1[1]);
     assert.equal(1, result.length);
   });
+
+  it('toString, no parameter, returns successfully', function() {
+    var tagList1 = ['test', 'nada'];
+    dm.addEntry(TestConstants.CONTENT1, tagList1);
+
+    var tagList2 = ['religion', 'politics', 'test'];
+    dm.addEntry(TestConstants.CONTENT2, tagList2);
+
+    var strOutput = dm.toString();
+    assert.equal('string', typeof strOutput);
+
+    var rdm = new InMemoryStorage(strOutput);
+    assert.equal(dm.getEntryCount(), rdm.getEntryCount());
+    assert.equal(dm.getTagManager().getTagCount(),
+        rdm.getTagManager().getTagCount());
+  });
+
 });

@@ -1,7 +1,9 @@
 
-var DataManager;
+var InMemoryStorage;
+var Storage;
 if (typeof DriveApp == "undefined") {
-  DataManager = require('./DataManager.js');
+  InMemoryStorage = require('./InMemoryStorage.js');
+  Storage = require('./Storage.js');
 }
 
 var FOLDER_NAME = "__brain_dump__";
@@ -17,7 +19,7 @@ var FILE_NAME = "brain-dump.json";
  * @return {Array.<{name: string, count: number, updatedDate: number}}
  */
 function getTagsSortedByPopularity() {
-  return getDataManager().getTagManager().getTagsSortedByPopularity();
+  return getStorage().getTagManager().getTagsSortedByPopularity();
 }
 
 /**
@@ -27,21 +29,22 @@ function getTagsSortedByPopularity() {
  * @return {name: string, tags: Array.<string>}
  */
 function addEntry(content, tags) {
-  return getDataManager().addEntry(content, tags);
+  return getStorage().addEntry(content, tags);
 }
 
-function getDataManager() {
-  var dm = new DataManager();
+function getStorage() {
+  var storage = new Storage();
+  storage.setImplementation(new InMemoryStorage());
 
   var content = "testinz";
   var tagList1 = ['math-scores', 'elementary-school', 'education'];
-  dm.addEntry('Gabrielle Roy school performance for the 2015-2016 school years',
+  storage.addEntry('Gabrielle Roy school performance for the 2015-2016 school years',
       tagList1);
 
   var tagList2 = ['crypto-currency', 'learning'];
-  dm.addEntry("Read more on crypto currencies.", tagList2);
+  storage.addEntry("Read more on crypto currencies.", tagList2);
 
-  return dm;
+  return storage;
 }
 
 /**
@@ -49,7 +52,7 @@ function getDataManager() {
  * @type {Array.<object>}
  */
 function findEntriesByTag(tagName, offset, count) {
-  return getDataManager().findEntriesByTag(tagName, offset, count);
+  return getStorage().findEntriesByTag(tagName, offset, count);
 }
 
 
@@ -58,7 +61,7 @@ function main() {
 //  var file = getActiveFile(folder);
   
 //  var data = readFromFile(file);
-  var manager = new DataManager({}); 
+  var manager = new InMemoryStorage({}); 
   Logger.log(manager.getEntryCount());
 
   Logger.log("*** upl from local");

@@ -1,50 +1,56 @@
 /**
- * Reads from {@code file} and returns the JSON parsed object.
- * @param file File
- * @return Object
+ * The main interface to the data.
+ * Usage: 
+ * var storage = new Storage();
+ * storage.setImplementation(...);
+ * storage.addEntry(...);
+ *
+ * @constructor
  */
-function readFromFile(file) {
-  var blob = file.getBlob(); 
-  var data = JSON.parse(blob.getDataAsString());
+function Storage() {
+  var impl;
+
+  /**
+   * Sets the backed implementation for this class. Any call to {@link Storage}
+   * methods will be redirected to the provided implementation.
+   */
+  this.setImplementation = function(implementation) {
+    impl = implementation;
+  }
+
+  /**
+   * @return {int} the number of entries
+   */
+  this.getEntryCount = function() {
+    return impl.getEntryCount();
+  }
+
+	/**
+   * @return {Tags}
+   */
+	this.getTagManager = function() {
+		return impl.getTagManager();
+	}
   
-  return data;
+  /**
+   * Adds a new entry.
+   * @param {string} content
+   * @param {array} tags - array of strings
+   * @return {object}
+   */
+  this.addEntry = function(content, tags) {
+    return impl.addEntry(content, tags);
+  }
+
+  /**
+   * Returns an array of the entries matching the given parameters..
+   * @type {Array.<object>}
+   */
+  this.findEntriesByTag = function(tagName, offset, count) {
+    return impl.findEntriesByTag(tagName, offset, count);
+  };
 }
 
-/**
- * Checks if {@link FOLDER_NAME} exists; if not, create it at root level.
- * @return Folder
- */
-function initFolder() {
-  var brainDumpFolder = null;
-  var folders = DriveApp.getFolders();
-  while (folders.hasNext()) {
-    var tmpFolder = folders.next();
-    if (FOLDER_NAME == tmpFolder.getName()) {
-      brainDumpFolder = tmpFolder;
-      break;
-    }
-  }
-  
-  if ( null == brainDumpFolder ) {
-    brainDumpFolder = DriveApp.createFolder(FOLDER_NAME);
-  }
-  
-  return brainDumpFolder;
-}
-
-/**
- * Gets or creates file {@link FILE_NAME} in {@code folder}.
- * @return File
- */ 
-function getActiveFile(folder) {
-  var file;
-  var fileIterator = folder.getFilesByName(FILE_NAME);
-  if (fileIterator.hasNext()) {
-    file = fileIterator.next();
-  }
-  else {
-    file = folder.createFile(FILE_NAME, '{"key": "testing 1 2 3"}');
-  }
-  
-  return file;
+if (typeof DriveApp == "undefined") {
+  module.exports = Storage;
 }

@@ -1,5 +1,4 @@
 var assert = require('chai').assert;
-//var assert = require('assert');
 var Tags = require('../Tags.js');
 
 describe('Tags', function() {
@@ -21,6 +20,11 @@ describe('Tags', function() {
   it('ctor, wrong param type, throws exception', function() {
     var fcn = function() { new Tags({}) };
     assert.throws(fcn, "Expect an array of tag objects");
+  })
+
+  it('ctor, invalid json data, throws exception', function() {
+    var fcn = function() { new Tags('blahblah') };
+    assert.throws(fcn, SyntaxError);
   })
 
   it('addTag, name not specified, throws exception', function() {
@@ -125,6 +129,20 @@ describe('Tags', function() {
     assert.equal(name2, sortArray[1].name);
     assert.equal(name3, sortArray[2].name);
   });
+
+  it('toString, no parameter, returns successfully', function() {
+    var name1 = 'politic';
+    var name2 = 'economic';
+    var name3 = 'kids';
+    tm.addTag(name1);
+    tm.addTag(name2);
+    tm.addTag(name3);
+
+    var strOutput = tm.toString();
+    assert.equal('string', typeof strOutput);
+
+    var rtm = new Tags(strOutput);
+    assert.equal(tm.getTagCount(), rtm.getTagCount());
+    assert.deepEqual(tm.getTagsSortedByPopularity(), rtm.getTagsSortedByPopularity());
+  });
 });
-
-
