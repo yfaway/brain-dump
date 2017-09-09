@@ -19,6 +19,11 @@ describe('InMemoryStorage', function() {
     assert.equal(0, dm.getEntryCount());
   });
 
+  it('ctor, empty string, inits correctly', function() {
+    dm = new InMemoryStorage('');
+    assert.equal(0, dm.getEntryCount());
+  });
+
   it('addEntry, wrong type, throws exception', function() {
     var fcn = function() { dm.addEntry(3); };
     assert.throws(fcn, "Expect string content");

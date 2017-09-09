@@ -16,6 +16,7 @@ String.prototype.format = function (){
  * the tags and display it in the entry area.
  */
 function renderTagList(tags) {
+  tags.unshift({name: "All"});
   tags.forEach(function(tag) {
     renderASingleTag($("#tags-list"), tag.name, tag.count);
   });
@@ -23,9 +24,9 @@ function renderTagList(tags) {
 
 // The code in this function runs when the page is loaded.
 function onAddEntry() {
-  var tagsArray = $("#content").val().split(' ');
+  var tagsArray = $("#input-tags").val().split(' ');
   google.script.run.withSuccessHandler(showThings)
-    .addEntry($("#content").val(), tagsArray);
+    .addEntry($("#input-content").val(), tagsArray);
   return false;
 };
 
@@ -42,9 +43,7 @@ function renderEntries(entries) {
 
   entries.forEach(function(entry) {
 
-    $("#entry-list").append('<div>');
-
-    var html = "<p id='entry-content'>{0}</p>".format(entry.content);
+    $("#entry-list").append('<div>'); var html = "<p id='entry-content'>{0}</p>".format(entry.content);
     $("#entry-list").append(html);
 
     $("#entry-list").append('Tags: ');
@@ -74,7 +73,7 @@ function renderASingleTag(container, tagName, tagCount) {
   $("#" + id).click(function() {
       google.script.run
         .withSuccessHandler(renderEntries)
-        .findEntriesByTag(tagName);
+        .findEntriesByTag('All' == tagName ? '' : tagName);
       return false;
   });
 }

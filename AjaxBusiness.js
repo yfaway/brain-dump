@@ -1,13 +1,11 @@
 
 var InMemoryStorage;
 var Storage;
-if (typeof DriveApp == "undefined") {
+var isInNodeJs = ("undefined" == typeof DriveApp);
+if (isInNodeJs) {
   InMemoryStorage = require('./InMemoryStorage.js');
   Storage = require('./Storage.js');
 }
-
-var FOLDER_NAME = "__brain_dump__";
-var FILE_NAME = "brain-dump.json";
 
 /**
  * The business layer that response to AJAX calls. In the GAS environment
@@ -34,15 +32,15 @@ function addEntry(content, tags) {
 
 function getStorage() {
   var storage = new Storage();
-  storage.setImplementation(new InMemoryStorage());
 
-  var content = "testinz";
-  var tagList1 = ['math-scores', 'elementary-school', 'education'];
-  storage.addEntry('Gabrielle Roy school performance for the 2015-2016 school years',
-      tagList1);
-
-  var tagList2 = ['crypto-currency', 'learning'];
-  storage.addEntry("Read more on crypto currencies.", tagList2);
+  if (isInNodeJs) {
+    storage.setImplementation(new InMemoryStorage());
+  }
+  else {
+    var googleDriveStorage = new GoogleDriveStorage();
+    googleDriveStorage.initalize();
+    storage.setImplementation(googleDriveStorage);
+  }
 
   return storage;
 }
@@ -55,15 +53,20 @@ function findEntriesByTag(tagName, offset, count) {
   return getStorage().findEntriesByTag(tagName, offset, count);
 }
 
-
 function main() {
-//  var folder = initFolder();
-//  var file = getActiveFile(folder);
-  
-//  var data = readFromFile(file);
-  var manager = new InMemoryStorage({}); 
-  Logger.log(manager.getEntryCount());
 
+  var googleDriveStorage = new GoogleDriveStorage();
+  googleDriveStorage.initalize();
+
+  var storage = new Storage();
+  storage.setImplementation(googleDriveStorage);
+
+  var tagList2 = ['crypto-currency', 'learning'];
+  storage.addEntry("Read more on crypto currencies.", tagList2);
+
+  Logger.log(storage.getEntryCount());
+
+  /*
   Logger.log("*** upl from local");
   
   //DriveApp.createFile('New Text File', 'Hello, world!');
@@ -72,10 +75,20 @@ function main() {
     'content': 'Hello world\nhttp://google.com',
     'tags': ['cpan', 'javascript', 'AI'],
   };
+  var content = "testinz";
+  var tagList1 = ['math-scores', 'elementary-school', 'education'];
+  storage.addEntry('Gabrielle Roy school performance for the 2015-2016 school years',
+      tagList1);
+
+  var tagList2 = ['crypto-currency', 'learning'];
+  storage.addEntry("Read more on crypto currencies.", tagList2);
+
+
   //Logger.log(JSON.stringify(entry));
+  //*/
 }
 
-if (typeof DriveApp == "undefined") {
+if (isInNodeJs) {
   module.exports = { 
     'getTagsSortedByPopularity': getTagsSortedByPopularity,
     'addEntry': addEntry,

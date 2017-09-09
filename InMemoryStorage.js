@@ -7,8 +7,8 @@ if (typeof DriveApp == "undefined") {
 /**
  * Manages the main data structure.
  * @constructor
- * @param {object|string} jsonData - the backend data; can be undefined or {} for new
- *     data.
+ * @param {object|string} jsonData - the backend data; can be undefined or {} 
+ *     for new data.
  */
 function InMemoryStorage(jsonData) {
   var root;
@@ -17,11 +17,16 @@ function InMemoryStorage(jsonData) {
     root = {};
   }
   else if ('string' === typeof jsonData) {
-    var tmpStructure = JSON.parse(jsonData);
-    root = { 
-      entries: tmpStructure.entries,
-      tags: new Tags(tmpStructure.tagsString),
-    };
+    if ( '' !== jsonData ) {
+      var tmpStructure = JSON.parse(jsonData);
+      root = { 
+        entries: tmpStructure.entries,
+        tags: new Tags(tmpStructure.tagsString),
+      }
+    }
+    else {
+      root = {};
+    }
   }
   else if ('object' === typeof jsonData) {
     root = jsonData;
@@ -91,20 +96,28 @@ function InMemoryStorage(jsonData) {
   }
 
   /**
-   * Returns an array of the entries matching the given parameters..
+   * Returns an array of the entries matching the given parameters. If tagName
+   * is an empty string, returns all entries.
    * @type {Array.<object>}
    */
   this.findEntriesByTag = function(tagName, offset, count) {
     var result = [];
-    // GAS doesn''t support Array.filter
-    root.entries.forEach(function(item) {
-        for (var i = 0; i < item.tags.length; ++i) {
-          if ( item.tags[i] == tagName ) {
-            result.push(item);
-            break;
+    if ( '' == tagName ) {
+      root.entries.forEach(function(item) {
+          result.push(item);
+      });
+    }
+    else {
+      // GAS doesn''t support Array.filter
+      root.entries.forEach(function(item) {
+          for (var i = 0; i < item.tags.length; ++i) {
+            if ( item.tags[i] == tagName ) {
+              result.push(item);
+              break;
+            }
           }
-        }
-    });
+      });
+    }
 
     return result;
   };
