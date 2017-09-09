@@ -26,6 +26,8 @@ function Tags(jsonData) {
     tags = jsonData;
   }
 
+  this.ALL_TAG_LABEL = function() {}
+
   /**
    * @return {int} the number of tags.
    */

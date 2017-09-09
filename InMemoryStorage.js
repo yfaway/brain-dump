@@ -102,10 +102,8 @@ function InMemoryStorage(jsonData) {
    */
   this.findEntriesByTag = function(tagName, offset, count) {
     var result = [];
-    if ( '' == tagName ) {
-      root.entries.forEach(function(item) {
-          result.push(item);
-      });
+    if ( 'All' == tagName ) {
+      result = this.getAllEntries(offset, count);
     }
     else {
       // GAS doesn''t support Array.filter
@@ -121,6 +119,19 @@ function InMemoryStorage(jsonData) {
 
     return result;
   };
+
+  this.getAllEntries = function(offset, count) {
+    var result = [];
+
+    if (offset < root.entries.length - 1) {
+      for (var i = offset; i < Math.min(offset + count, root.entries.length);
+            ++i) {
+          result.push(root.entries[i]);
+      }
+    }
+
+    return result;
+  }
 
   /**
    * Transform the backed data into a JSON string.

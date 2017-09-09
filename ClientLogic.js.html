@@ -16,7 +16,6 @@ String.prototype.format = function (){
  * the tags and display it in the entry area.
  */
 function renderTagList(tags) {
-  tags.unshift({name: "All"});
   tags.forEach(function(tag) {
     renderASingleTag($("#tags-list"), tag.name, tag.count);
   });
@@ -25,13 +24,15 @@ function renderTagList(tags) {
 // The code in this function runs when the page is loaded.
 function onAddEntry() {
   var tagsArray = $("#input-tags").val().split(' ');
-  google.script.run.withSuccessHandler(showThings)
+  google.script.run.withSuccessHandler(refreshTopTen)
     .addEntry($("#input-content").val(), tagsArray);
   return false;
 };
 
-function showThings(things) {
-  alert(things);
+function refreshTopTen(things) {
+  google.script.run
+    .withSuccessHandler(renderEntries)
+    .findEntriesByTag('All', 0, 10);
 }
 
 /**
@@ -42,13 +43,13 @@ function renderEntries(entries) {
   $("#entry-list").html('');
 
   entries.forEach(function(entry) {
-
-    $("#entry-list").append('<div>'); var html = "<p id='entry-content'>{0}</p>".format(entry.content);
+    $("#entry-list").append('<div>');
+    var html = "<p id='entry-content'>{0}</p>".format(entry.content);
     $("#entry-list").append(html);
 
     $("#entry-list").append('Tags: ');
     entry.tags.forEach(function(name) {
-      renderASingleTag($("#entry-list"), name);
+      renderASingleTag($("#entry-list"), name, null, 'entry-tag-');
     });
 
     html = "<br />{0}<hr />".format(new Date(entry.creationTime).toLocaleString());
@@ -58,11 +59,14 @@ function renderEntries(entries) {
   });
 }
 
-function renderASingleTag(container, tagName, tagCount) {
-  var id = 'tag-' + tagName;
+function renderASingleTag(container, tagName, tagCount, idPrefix) {
+  if ( 'undefined' == typeof idPrefix ) {
+    idPrefix = 'tag-';
+  }
+  var id = idPrefix + tagName;
 
   var html;
-  if (typeof tagCount != 'undefined') {
+  if (null != tagCount) {
     html = "<a href='' id='{0}'>{1} ({2})</a> ".format(id, tagName, tagCount); 
   }
   else {
@@ -73,7 +77,7 @@ function renderASingleTag(container, tagName, tagCount) {
   $("#" + id).click(function() {
       google.script.run
         .withSuccessHandler(renderEntries)
-        .findEntriesByTag('All' == tagName ? '' : tagName);
+        .findEntriesByTag(tagName);
       return false;
   });
 }

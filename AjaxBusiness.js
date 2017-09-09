@@ -13,11 +13,29 @@ if (isInNodeJs) {
  */
 
 /**
- * Returns a list of tags sorted by popularity.
+ * Returns a list of tags sorted by popularity. If the storage has at least
+ * one entry, the returned tag list always has the first tag with the name 
+ * 'All' and the count being the number of entries in storage.
+ *
+ * @param storage {Storage} - used by test code to passed-in an existing
+ *     storage instance. For non-test code, a new {@link Storage} object is
+ *     always constructed.
+ *
  * @return {Array.<{name: string, count: number, updatedDate: number}}
  */
-function getTagsSortedByPopularity() {
-  return getStorage().getTagManager().getTagsSortedByPopularity();
+function getTagsSortedByPopularity(storage) {
+  if (! isInNodeJs || 'undefined' == typeof storage) {
+    storage = getStorage();
+  }
+
+  var tags = storage.getTagManager().getTagsSortedByPopularity();
+
+  if ( 0 < storage.getEntryCount() ) {
+    var firstTag = {name: 'All', count: storage.getEntryCount()};
+    tags.unshift(firstTag);
+  }
+
+  return tags;
 }
 
 /**
@@ -54,7 +72,6 @@ function findEntriesByTag(tagName, offset, count) {
 }
 
 function main() {
-
   var googleDriveStorage = new GoogleDriveStorage();
   googleDriveStorage.initalize();
 
@@ -65,27 +82,6 @@ function main() {
   storage.addEntry("Read more on crypto currencies.", tagList2);
 
   Logger.log(storage.getEntryCount());
-
-  /*
-  Logger.log("*** upl from local");
-  
-  //DriveApp.createFile('New Text File', 'Hello, world!');
-  var entry = {
-    'createdDate' : 2,
-    'content': 'Hello world\nhttp://google.com',
-    'tags': ['cpan', 'javascript', 'AI'],
-  };
-  var content = "testinz";
-  var tagList1 = ['math-scores', 'elementary-school', 'education'];
-  storage.addEntry('Gabrielle Roy school performance for the 2015-2016 school years',
-      tagList1);
-
-  var tagList2 = ['crypto-currency', 'learning'];
-  storage.addEntry("Read more on crypto currencies.", tagList2);
-
-
-  //Logger.log(JSON.stringify(entry));
-  //*/
 }
 
 if (isInNodeJs) {

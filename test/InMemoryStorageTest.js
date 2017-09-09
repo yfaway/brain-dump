@@ -127,4 +127,40 @@ describe('InMemoryStorage', function() {
         rdm.getTagManager().getTagCount());
   });
 
+  it('getAllEntries, 0 -> 2 (beginning), returns non-empty array', function() {
+    for (var i = 0; i < 10; ++i) {
+      var tagList1 = ['test', 'nada'];
+      dm.addEntry("" + i, tagList1);
+    }
+
+    var result = dm.getAllEntries(0, 2);
+    assert.equal(2, result.length);
+    assert.equal('0', result[0].content);
+    assert.equal('1', result[1].content);
+  });
+
+  it('getAllEntries, 2 -> 4 (middle), returns non-empty array', function() {
+    for (var i = 0; i < 10; ++i) {
+      var tagList1 = ['test', 'nada'];
+      dm.addEntry("" + i, tagList1);
+    }
+
+    var result = dm.getAllEntries(2, 4);
+    assert.equal(4, result.length);
+    assert.equal('2', result[0].content);
+    assert.equal('5', result[3].content);
+  });
+
+  it('getAllEntries, 8 -> 10 (end & out of range), returns non-empty array',
+      function() {
+    for (var i = 0; i < 10; ++i) {
+      var tagList1 = ['test', 'nada'];
+      dm.addEntry("" + i, tagList1);
+    }
+
+    var result = dm.getAllEntries(8, 10);
+    assert.equal(2, result.length);
+    assert.equal('8', result[0].content);
+    assert.equal('9', result[1].content);
+  });
 });
