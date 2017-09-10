@@ -26,10 +26,14 @@ function onAddEntry() {
   var tagsArray = $("#input-tags").val().split(' ');
   google.script.run.withSuccessHandler(refreshTopTen)
     .addEntry($("#input-content").val(), tagsArray);
+
   return false;
 };
 
 function refreshTopTen(things) {
+	$("#input-tags").val('');
+	$("#input-content").val('');
+
   google.script.run
     .withSuccessHandler(renderEntries)
     .findEntriesByTag('All', 0, 10);
@@ -89,20 +93,20 @@ function renderEntries(result) {
   });
 
   entries.forEach(function(entry) {
-    $("#entry-list").append('<div>');
-    var html = "<p id='entry-content'>{0}</p>".format(entry.content);
+		var html = '<div id="entry">';
+    html += "<p id='entry-content'>{0}</p>".format(entry.content);
+		html += 'Tags: ';
+    html += "<br />{0}".format(
+        new Date(entry.creationTime).toLocaleString());
+    html += '</div>';
+
     $("#entry-list").append(html);
 
-    $("#entry-list").append('Tags: ');
+/*
     entry.tags.forEach(function(name) {
       renderASingleTag($("#entry-list"), name, null, entryTagIdPrefix);
     });
-
-    html = "<br />{0}<hr />".format(
-        new Date(entry.creationTime).toLocaleString());
-    $("#entry-list").append(html);
-    $("#entry-list").append('<hr/>');
-    $("#entry-list").append('</div>');
+*/
   });
 
   $("#" + id).click(function() {
