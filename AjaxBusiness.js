@@ -65,7 +65,19 @@ function getStorage() {
 
 /**
  * Returns an array of the entries matching the given parameters..
- * @type {Array.<object>}
+ * @param tagName {string}
+ * @param offset {int} the start index
+ * @param count {int} the maximum number of items to retrieve
+ * @return 
+ *   { searchType: string,
+ *     searchValue: string,
+ *     hasMore: boolean,
+ *     offset: int,
+ *     count: int,
+ *     entries: Array.<{content: string, 
+ *                      tags: Array.<string>,
+ *                      updatedDate: number}
+ *   }
  */
 function findEntriesByTag(tagName, offset, count) {
   return getStorage().findEntriesByTag(tagName, offset, count);

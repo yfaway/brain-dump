@@ -89,25 +89,25 @@ describe('InMemoryStorage', function() {
     assert.equal(4, dm.getTagManager().getTagCount());
   });
 
-  it('findEntriesByTag, zero match , returns empty array', function() {
+  it('findEntriesByTagImpl, zero match , returns empty array', function() {
     var tagList1 = ['test', 'nada'];
     dm.addEntry(TestConstants.CONTENT1, tagList1);
 
-    var result = dm.findEntriesByTag('invalid tag');
+    var result = dm.findEntriesByTagImpl('invalid tag');
     assert.equal(0, result.length);
   });
 
-  it('findEntriesByTag, has match , returns non-empty array', function() {
+  it('findEntriesByTagImpl, has match , returns non-empty array', function() {
     var tagList1 = ['test', 'nada'];
     dm.addEntry(TestConstants.CONTENT1, tagList1);
 
     var tagList2 = ['religion', 'politics', 'test'];
     dm.addEntry(TestConstants.CONTENT2, tagList2);
 
-    var result = dm.findEntriesByTag(tagList1[0]);
+    var result = dm.findEntriesByTagImpl(tagList1[0]);
     assert.equal(2, result.length);
 
-    result = dm.findEntriesByTag(tagList1[1]);
+    result = dm.findEntriesByTagImpl(tagList1[1]);
     assert.equal(1, result.length);
   });
 

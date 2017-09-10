@@ -62,8 +62,8 @@ function GoogleDriveStorage() {
    * Returns an array of the entries matching the given parameters..
    * @type {Array.<object>}
    */
-  this.findEntriesByTag = function(tagName, offset, count) {
-    return inMemoryStorage.findEntriesByTag(tagName, offset, count);
+  this.findEntriesByTagImpl = function(tagName, offset, count) {
+    return inMemoryStorage.findEntriesByTagImpl(tagName, offset, count);
   };
 
 

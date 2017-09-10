@@ -100,7 +100,7 @@ function InMemoryStorage(jsonData) {
    * is an empty string, returns all entries.
    * @type {Array.<object>}
    */
-  this.findEntriesByTag = function(tagName, offset, count) {
+  this.findEntriesByTagImpl = function(tagName, offset, count) {
     var result = [];
     if ( 'All' == tagName ) {
       result = this.getAllEntries(offset, count);

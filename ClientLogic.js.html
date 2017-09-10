@@ -39,8 +39,54 @@ function refreshTopTen(things) {
  * Clears the entry div container and renders the provided entries.
  * @param entries
  */
-function renderEntries(entries) {
+function renderEntries(result) {
+  var entries = result.entries;
+
+  // clear all the entry tag events first
+  var entryTagIdPrefix = 'entry-tag-';
+  //$("[id^=" + entryTagIdPrefix + "]").off('click');
+
   $("#entry-list").html('');
+
+  // Prev and Next links
+
+  $("#prev").off('click');
+  $("#next").off('click');
+  $("#entry-list").append('<div>');
+
+  if ( result.offset > 0 ) {
+    $("#entry-list").append("[<a href='' id='prev'>Prev</a>] ");
+  }
+  else {
+    $("#entry-list").append("[Prev] ");
+  }
+
+  if ( result.hasMore ) {
+    $("#entry-list").append("[<a href='' id='next'>Next</a>] ");
+  }
+  else {
+    $("#entry-list").append("[Next] ");
+  }
+
+  $("#entry-list").append('</div>');
+
+  $("#prev").click(function() {
+      google.script.run
+        .withSuccessHandler(renderEntries)
+        .findEntriesByTag(result.searchValue, 
+            result.offset - result.count, 
+            result.count);
+      return false;
+  });
+
+  $("#next").click(function() {
+      google.script.run
+        .withSuccessHandler(renderEntries)
+        .findEntriesByTag(result.searchValue, 
+            result.offset + result.count, 
+            result.count);
+      return false;
+  });
 
   entries.forEach(function(entry) {
     $("#entry-list").append('<div>');
@@ -49,14 +95,23 @@ function renderEntries(entries) {
 
     $("#entry-list").append('Tags: ');
     entry.tags.forEach(function(name) {
-      renderASingleTag($("#entry-list"), name, null, 'entry-tag-');
+      renderASingleTag($("#entry-list"), name, null, entryTagIdPrefix);
     });
 
-    html = "<br />{0}<hr />".format(new Date(entry.creationTime).toLocaleString());
+    html = "<br />{0}<hr />".format(
+        new Date(entry.creationTime).toLocaleString());
     $("#entry-list").append(html);
     $("#entry-list").append('<hr/>');
     $("#entry-list").append('</div>');
   });
+
+  $("#" + id).click(function() {
+      google.script.run
+        .withSuccessHandler(renderEntries)
+        .findEntriesByTag(tagName, 0, 10);
+      return false;
+  });
+
 }
 
 function renderASingleTag(container, tagName, tagCount, idPrefix) {
@@ -77,7 +132,7 @@ function renderASingleTag(container, tagName, tagCount, idPrefix) {
   $("#" + id).click(function() {
       google.script.run
         .withSuccessHandler(renderEntries)
-        .findEntriesByTag(tagName);
+        .findEntriesByTag(tagName, 0, 10);
       return false;
   });
 }
