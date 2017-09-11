@@ -115,18 +115,32 @@ function InMemoryStorage(jsonData) {
             }
           }
       });
+
+      // sort by creationTime DESC
+      result.sort(function(a, b) {
+        return b.creationTime - a.creationTime;
+      });
     }
 
     return result;
   };
 
+  /**
+   * Returns the entries sorted by creationTime in descending order.
+   */
   this.getAllEntries = function(offset, count) {
-    var result = [];
+    var entriesClone = root.entries.slice();
 
-    if (offset < root.entries.length - 1) {
-      for (var i = offset; i < Math.min(offset + count, root.entries.length);
+    // sort by creationTime DESC
+    entriesClone.sort(function(a, b) {
+      return b.creationTime - a.creationTime;
+    });
+
+    var result = [];
+    if (offset < entriesClone.length - 1) {
+      for (var i = offset; i < Math.min(offset + count, entriesClone.length);
             ++i) {
-          result.push(root.entries[i]);
+          result.push(entriesClone[i]);
       }
     }
 

@@ -2,6 +2,8 @@
 $(function() {
   google.script.run.withSuccessHandler(renderTagList)
       .getTagsSortedByPopularity();
+
+  findEntriesByTag('All', 0, 10);
 });
 
 String.prototype.format = function (){
@@ -17,7 +19,10 @@ String.prototype.format = function (){
  */
 function renderTagList(tags) {
   tags.forEach(function(tag) {
-    renderASingleTag($("#tags-list"), tag.name, tag.count);
+    var tagDisplayObj = getHtmlForASingleTag(tag.name, tag.count);
+    $("#tags-list").append(tagDisplayObj.html);
+
+    addTagClickEvent(tagDisplayObj.id, tag.name);
   });
 }
 
@@ -34,9 +39,7 @@ function refreshTopTen(things) {
 	$("#input-tags").val('');
 	$("#input-content").val('');
 
-  google.script.run
-    .withSuccessHandler(renderEntries)
-    .findEntriesByTag('All', 0, 10);
+  findEntriesByTag('All', 0, 10);
 }
 
 /**
@@ -49,76 +52,78 @@ function renderEntries(result) {
   // clear all the entry tag events first
   var entryTagIdPrefix = 'entry-tag-';
   //$("[id^=" + entryTagIdPrefix + "]").off('click');
-
-  $("#entry-list").html('');
+  var entryListNode = $("#entry-list");
 
   // Prev and Next links
-
-  $("#prev").off('click');
-  $("#next").off('click');
-  $("#entry-list").append('<div>');
+  entryListNode.append('<div>');
 
   if ( result.offset > 0 ) {
-    $("#entry-list").append("[<a href='' id='prev'>Prev</a>] ");
+    entryListNode.append("[<a href='' id='prev'>Prev</a>] ");
   }
   else {
-    $("#entry-list").append("[Prev] ");
+    entryListNode.append("[Prev] ");
   }
+
+  entryListNode.append("displaying entries {0} to {1} ".format(
+        result.offset + 1, result.offset + result.count));
 
   if ( result.hasMore ) {
-    $("#entry-list").append("[<a href='' id='next'>Next</a>] ");
+    entryListNode.append("[<a href='' id='next'>Next</a>] ");
   }
   else {
-    $("#entry-list").append("[Next] ");
+    entryListNode.append("[Next] ");
   }
 
-  $("#entry-list").append('</div>');
+  entryListNode.append('</div>');
 
   $("#prev").click(function() {
-      google.script.run
-        .withSuccessHandler(renderEntries)
-        .findEntriesByTag(result.searchValue, 
-            result.offset - result.count, 
-            result.count);
-      return false;
+    findEntriesByTag(result.searchValue, 
+        result.offset - result.count, 
+        result.count);
+    return false;
   });
 
   $("#next").click(function() {
-      google.script.run
-        .withSuccessHandler(renderEntries)
-        .findEntriesByTag(result.searchValue, 
-            result.offset + result.count, 
-            result.count);
-      return false;
+    findEntriesByTag(result.searchValue, 
+        result.offset + result.count, 
+        result.count);
+    return false;
   });
 
   entries.forEach(function(entry) {
 		var html = '<div id="entry">';
     html += "<p id='entry-content'>{0}</p>".format(entry.content);
 		html += 'Tags: ';
+
+    // accumulate the id and the tag name to register the event, after the 
+    // tag link has been added to the DOM tree
+    var tagIds = []; 
+    entry.tags.forEach(function(name) {
+      var tagDisplayObj = getHtmlForASingleTag(name, null, entryTagIdPrefix);
+      html += tagDisplayObj.html;
+
+      tagDisplayObj.name = name;
+      tagIds.push(tagDisplayObj);
+    });
+
     html += "<br />{0}".format(
         new Date(entry.creationTime).toLocaleString());
     html += '</div>';
 
-    $("#entry-list").append(html);
+    entryListNode.append(html);
 
-/*
-    entry.tags.forEach(function(name) {
-      renderASingleTag($("#entry-list"), name, null, entryTagIdPrefix);
+    tagIds.forEach(function(obj) {
+        addTagClickEvent(obj.id, obj.name);
     });
-*/
   });
-
-  $("#" + id).click(function() {
-      google.script.run
-        .withSuccessHandler(renderEntries)
-        .findEntriesByTag(tagName, 0, 10);
-      return false;
-  });
-
 }
 
-function renderASingleTag(container, tagName, tagCount, idPrefix) {
+/**
+ * Returns an object containing the HTML string for the tag and the element's
+ * id.
+ * @return {html: string, id: string}
+ */
+function getHtmlForASingleTag(tagName, tagCount, idPrefix) {
   if ( 'undefined' == typeof idPrefix ) {
     idPrefix = 'tag-';
   }
@@ -126,18 +131,33 @@ function renderASingleTag(container, tagName, tagCount, idPrefix) {
 
   var html;
   if (null != tagCount) {
-    html = "<a href='' id='{0}'>{1} ({2})</a> ".format(id, tagName, tagCount); 
+    html = "<a href='' id='{0}'>{1} ({2})</a> ".format(id, tagName, tagCount);
   }
   else {
     html = "<a href='' id='{0}'>{1}</a> ".format(id, tagName); 
   }
-  container.append(html);
 
+  return {html: html, id: id};
+}
+
+/**
+ * Handles clicking on a tag -> find entries matching the provided tag.
+ */
+function addTagClickEvent(id, tagName) {
   $("#" + id).click(function() {
-      google.script.run
-        .withSuccessHandler(renderEntries)
-        .findEntriesByTag(tagName, 0, 10);
-      return false;
+    findEntriesByTag(tagName, 0, 10);
+    return false;
   });
 }
+
+function findEntriesByTag(tagName, offset, count) {
+  $("#entry-list").html('');
+  $("#prev").off('click');
+  $("#next").off('click');
+
+  google.script.run
+    .withSuccessHandler(renderEntries)
+    .findEntriesByTag(tagName, offset, count);
+}
+
 </script>  
