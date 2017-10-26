@@ -72,6 +72,9 @@ describe('InMemoryStorage', function() {
     assert.equal(TestConstants.CONTENT1, entry.content);
     assert.equal(tags, entry.tags);
     assert.exists(entry.creationTime);
+    assert.exists(entry.id);
+    assert.isString(entry.id);
+    assert.isNotEmpty(entry.id);
     assert.notExists(entry.updateTime);
 
     assert.equal(2, dm.getTagManager().getTagCount());

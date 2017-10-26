@@ -1,3 +1,4 @@
-- associate entry with an unique id
-- support Markdown formatting for entry content
+- support editting an item
+- support text search
 - add a way to quickly add a tag to the tags list while creating an entries.
+- bug: when adding an item, the list of all tags isn't updated.

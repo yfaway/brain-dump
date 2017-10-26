@@ -1,6 +1,7 @@
 var Tags;
+var IS_OUTSIDE_GAS = (typeof DriveApp == "undefined");
 
-if (typeof DriveApp == "undefined") {
+if (IS_OUTSIDE_GAS) {
   Tags = require('./Tags.js');
 }
 
@@ -80,7 +81,16 @@ function InMemoryStorage(jsonData) {
         }
     });
 
+    var id;
+    if (IS_OUTSIDE_GAS) {
+      id = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString();
+    }
+    else {
+      id = Utilities.getUuid();
+    }
+
     var entry = { 
+      id: id,
       content: content,
       tags: tags,
       creationTime: new Date().getTime(),
@@ -161,6 +171,6 @@ function InMemoryStorage(jsonData) {
   };
 }
 
-if (typeof DriveApp == "undefined") {
+if (IS_OUTSIDE_GAS) {
   module.exports = InMemoryStorage;
 }

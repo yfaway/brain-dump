@@ -90,9 +90,15 @@ function renderEntries(result) {
     return false;
   });
 
+  var markDownReader = new commonmark.Parser();
+  var markDownWriter = new commonmark.HtmlRenderer();
+
   entries.forEach(function(entry) {
+    var contentHtml = markDownWriter.render(
+        markDownReader.parse(entry.content));
+
 		var html = '<div id="entry">';
-    html += "<p id='entry-content'>{0}</p>".format(entry.content);
+    html += "<p id='entry-content'>{0}</p>".format(contentHtml);
 		html += 'Tags: ';
 
     // accumulate the id and the tag name to register the event, after the 
