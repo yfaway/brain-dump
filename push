@@ -1,0 +1,5 @@
+mv node_modules ../
+mv test ../
+gas push
+mv ../node_modules .
+mv ../test .
