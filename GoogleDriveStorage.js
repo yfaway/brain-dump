@@ -6,20 +6,34 @@
 function GoogleDriveStorage() {
   var FOLDER_NAME = "__brain_dump__";
   var FILE_NAME = "brain-dump.json";
+  var CACHE_KEY_PREFIX = "raw-data";
+  var CACHE_DURATION_IN_SECONDS = 60 * 30; // 30 minutes
+
+  // GAS allows 100KB, but we just round it down
+  var CACHE_MAX_VALUE_SIZE_IN_BYTES = 100000;
 
   var inMemoryStorage;
   var file;
+  var cache = CacheService.getUserCache();
 
   /**
    * Loads the content of the file storage into the {@link InMemoryStorage}
    * object. The file will be created if it does not exist.
    */
   this.initalize = function() {
-    var folder = this.initFolder();
-    file = this.getActiveFile(folder);
+    var rawData = this.readRawDataFromCache(cache);
 
-    var blob = file.getBlob(); 
-    inMemoryStorage = new InMemoryStorage(blob.getDataAsString());
+    if ( null == rawData ) {
+      var folder = this.initFolder();
+      file = this.getActiveFile(folder);
+
+      var blob = file.getBlob(); 
+      rawData = blob.getDataAsString();
+
+      this.putRawDataToCache(cache, rawData);
+    }
+
+    inMemoryStorage = new InMemoryStorage(rawData);
 
     /*
     if ( 0 == inMemoryStorage.getEntryCount() ) {
@@ -30,6 +44,67 @@ function GoogleDriveStorage() {
       file.setContent(inMemoryStorage.toString());
     }
     */
+  }
+
+  /**
+   * Reads the raw data from {CacheService}. CacheService limits the value to
+   * a specific size, thus, the raw data might be distributed in multiple keys.
+   * @param cache {CacheService}
+   * @return {string} null if data is not in cache
+   */
+  this.readRawDataFromCache = function(cache) {
+    var rawData = "";
+    var keyIndex = 0;
+    while ( true ) {
+      var key = this.getRawDataCacheKey(keyIndex);
+      var value = cache.get(key);
+      if ( null != value ) {
+        rawData += value;
+        keyIndex++;
+      }
+      else {
+        break;
+      }
+    }
+
+    return 0 == rawData.length ? null : rawData;
+  }
+
+  /**
+   * Stores the input data in the {CacheService}. The data might be splitted
+   * into mulitiple values if it is larger than the maximum value size 
+   * permitted by {CacheService}.
+   * @param cache {CacheService}
+   * @param rawData {string}
+   */
+  this.putRawDataToCache = function(cache, rawData) {
+    var keyIndex = 0;
+    while ( true ) {
+      var str = rawData.substr(keyIndex * CACHE_MAX_VALUE_SIZE_IN_BYTES,
+          CACHE_MAX_VALUE_SIZE_IN_BYTES);
+      if (0 == str.length) {
+        break;
+      }
+      else {
+        var key = this.getRawDataCacheKey(keyIndex);
+        cache.put(key, str, CACHE_DURATION_IN_SECONDS);
+
+        if ( str.length < CACHE_MAX_VALUE_SIZE_IN_BYTES ) {
+          break;
+        }
+        else {
+          keyIndex++;
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the cache key for the given key index.
+   * @return {string}
+   */
+  this.getRawDataCacheKey = function(keyIndex) {
+    return CACHE_KEY_PREFIX + "-" + keyIndex;
   }
 
   /**
@@ -54,8 +129,39 @@ function GoogleDriveStorage() {
    */
   this.addEntry = function(content, tags) {
     var entry = inMemoryStorage.addEntry(content, tags);
-    file.setContent(inMemoryStorage.toString());
+    this.writeRawDataToFile(cache, inMemoryStorage.toString());
     return entry;
+  }
+
+  /**
+   * Writes the data to file and updates the cache.
+   * @param cache {CacheService}
+   * @param rawData {string}
+   */
+  this.writeRawDataToFile = function(cache, rawData) {
+    if ( null == file ) {
+      var folder = this.initFolder();
+      file = this.getActiveFile(folder);
+    }
+
+    file.setContent(rawData);
+
+    // invalidate cache
+    if ( null != cache ) {
+      var keyIndex = 0;
+      while ( true ) {
+        var key = CACHE_KEY_PREFIX + "-" + keyIndex;
+        if (null == cache.get(key)) {
+          break;
+        }
+        else {
+          cache.remove(key);
+          key++;
+        }
+      }
+    }
+
+    this.putRawDataToCache(cache, rawData);
   }
 
   /**
