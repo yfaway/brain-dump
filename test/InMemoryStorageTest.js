@@ -70,7 +70,7 @@ describe('InMemoryStorage', function() {
 
     assert.equal(1, dm.getEntryCount());
     assert.equal(TestConstants.CONTENT1, entry.content);
-    assert.equal(tags, entry.tags);
+    assert.deepEqual(tags, entry.tags);
     assert.exists(entry.creationTime);
     assert.exists(entry.id);
     assert.isString(entry.id);
@@ -91,6 +91,116 @@ describe('InMemoryStorage', function() {
     assert.equal(2, dm.getEntryCount());
     assert.equal(4, dm.getTagManager().getTagCount());
   });
+
+  it('updateEntry, null entry, throws exception', function() {
+    var fcn = function() { dm.updateEntry(null); };
+    assert.throws(fcn, "Must be a non-null entry");
+  })
+
+
+  it('updateEntry, missing id, throws exception', function() {
+    var fcn = function() { dm.updateEntry({}); };
+    assert.throws(fcn, "Expect non-empty id string");
+  })
+
+  it('updateEntry, empty id string, throws exception', function() {
+    var fcn = function() { dm.updateEntry({ id : '' }); };
+    assert.throws(fcn, "Expect non-empty id string");
+  })
+
+
+  it('updateEntry, wrong id type, throws exception', function() {
+    var fcn = function() { dm.updateEntry({ id : 4 }); };
+    assert.throws(fcn, "Expect non-empty id string");
+  })
+
+  it('updateEntry, missing content, throws exception', function() {
+    var fcn = function() { dm.updateEntry({ id : 'xxx' }); };
+    assert.throws(fcn, "Expect non-empty content string");
+  })
+
+  it('updateEntry, empty content string, throws exception', function() {
+    var fcn = function() { dm.updateEntry({ id : 'xxx', content: '' }); };
+    assert.throws(fcn, "Expect non-empty content string");
+  })
+
+  it('updateEntry, wrong content type, throws exception', function() {
+    var fcn = function() { dm.updateEntry({ id : 'xxx', content: 4 }); };
+    assert.throws(fcn, "Expect non-empty content string");
+  })
+
+  it('updateEntry, wrong tags type, throws exception', function() {
+    var fcn = function() { dm.updateEntry({ id : 'xxx', content: 'yyy', tags: 3 }) };
+    assert.throws(fcn, "Expect non-empty tags array");
+  })
+
+  it('updateEntry, undefined tags type, throws exception', function() {
+    var fcn = function() { dm.updateEntry({ id : 'xxx', content: 'yyy'}) };
+    assert.throws(fcn, "Expect non-empty tags array");
+  })
+
+  it('updateEntry, empty tags array, throws exception', function() {
+    var fcn = function() { dm.updateEntry({ id : 'xxx', content: 'yyy', tags: [] }) };
+    assert.throws(fcn, "Expect non-empty tags array");
+  })
+
+  it('updateEntry, tags array contains null name, throws exception', function() {
+    var fcn = function() { dm.updateEntry(
+        { id : 'xxx', content: 'yyy', tags: ['a', null] }) };
+    assert.throws(fcn, "Tags array must contain non-empty string names");
+  })
+
+  it('updateEntry, tags array contains non-string value, throws exception', function() {
+    var fcn = function() { dm.updateEntry(
+        { id : 'xxx', content: 'yyy', tags: ['a', 3] }) };
+    assert.throws(fcn, "Tags array must contain non-empty string names");
+  })
+
+  it('updateEntry, tags array contains empty name, throws exception', function() {
+    var fcn = function() { dm.updateEntry(
+        { id : 'xxx', content: 'yyy', tags: ['a', '', 'b'] }) };
+    assert.throws(fcn, "Tags array must contain non-empty string names");
+  })
+
+  it('updateEntry, entry not found, throws exception', function() {
+    var fcn = function() { dm.updateEntry(
+        { id : 'xxx', content: 'yyy', tags: ['a', 'b'] }) };
+    assert.throws(fcn, "Entry not found");
+  })
+
+  it('updateEntry, valid entry and change content, returns normally', function() {
+    var tags = ['test', 'nada'];
+    var entry = dm.addEntry(TestConstants.CONTENT1, tags);
+    var result = dm.getAllEntries(0, 1);
+
+    entry.content = "new content";
+    dm.updateEntry(entry);
+
+    result = dm.getAllEntries(0, 1);
+    var updatedEntry = result[0];
+    assert.equal(updatedEntry.content, entry.content);
+    assert.deepEqual(updatedEntry.tags, tags);
+    assert.isOk(updatedEntry.modificationTime >= updatedEntry.creationTime);
+  })
+
+  it('updateEntry, valid entry and change tags, returns normally', function() {
+    var tags = ['test', 'nada'];
+    var entry = dm.addEntry(TestConstants.CONTENT1, tags);
+
+    var newTag = 'new-tag';
+    entry.content = "new content";
+    entry.tags = [newTag];
+    dm.updateEntry(entry);
+
+    var result = dm.getAllEntries(0, 1);
+    var updatedEntry = result[0];
+    assert.equal(entry.content, updatedEntry.content);
+    assert.deepEqual([newTag], updatedEntry.tags);
+    assert.isOk(updatedEntry.modificationTime >= updatedEntry.creationTime);
+
+    assert.equal(1, dm.getTagManager().getTagCount());
+    assert.equal(newTag, dm.getTagManager().getTagsSortedByPopularity()[0].name);
+  })
 
   it('findEntriesByTagImpl, zero match , returns empty array', function() {
     var tagList1 = ['test', 'nada'];

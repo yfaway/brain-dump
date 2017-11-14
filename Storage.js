@@ -43,6 +43,15 @@ function Storage() {
   }
 
   /**
+   * Updates an existing entry.
+   * @param entry {object}
+   * @throw error if the entry is not valid.
+   */
+  this.updateEntry = function(entry) {
+    return impl.updateEntry(entry);
+  }
+
+  /**
    * Searches the entries by the given tagName, and retrieves {@code count}
    * results from the {@code offset}.
    * @param tagName {string}

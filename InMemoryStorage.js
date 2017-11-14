@@ -59,7 +59,7 @@ function InMemoryStorage(jsonData) {
    * Adds a new entry.
    * @param {string} content
    * @param {array} tags - array of strings
-   * @return {object}
+   * @return {object} - a copy of the object in storage.
    */
   this.addEntry = function(content, tags) {
     if ( typeof content !== 'string' ) {
@@ -70,16 +70,7 @@ function InMemoryStorage(jsonData) {
       throw "Expect non-empty content";
     }
 
-    if (! Array.isArray(tags) || tags.length == 0 ) {
-      throw "Expect non-empty tags array";
-    }
-
-    tags.forEach(function(name) {
-        if ( typeof name !== 'string'
-            || '' == name ) {
-        throw "Tags array must contain non-empty string names";
-        }
-    });
+    this.validateTagArray(tags);
 
     var id;
     if (IS_OUTSIDE_GAS) {
@@ -92,7 +83,7 @@ function InMemoryStorage(jsonData) {
     var entry = { 
       id: id,
       content: content,
-      tags: tags,
+      tags: tags.slice(),
       creationTime: new Date().getTime(),
     };
                  
@@ -102,13 +93,76 @@ function InMemoryStorage(jsonData) {
       root.tags.addTag(item);
     });
 
-    return entry;
+    return this.copyEntry(entry);
+  }
+
+  /**
+   * Updates an existing entry.
+   * @param entry {object}
+   * @throw error if the entry is not valid.
+   */
+  this.updateEntry = function(entry) {
+    if ('undefined' === typeof entry || null === entry) {
+      throw "Must be a non-null entry";
+    }
+
+    if ( ('string' !== typeof entry.id) || '' === entry.id ) {
+      throw "Expect non-empty id string";
+    }
+
+    if ( ('string' !== typeof entry.content) || '' === entry.content ) {
+      throw "Expect non-empty content string";
+    }
+
+    this.validateTagArray(entry.tags);
+
+    var found = false;
+    for ( var i = 0; i < root.entries.length; ++i ) {
+      var existingItem = root.entries[i];
+
+      if ( entry.id === existingItem.id ) {
+        existingItem.content = entry.content;
+        existingItem.modificationTime = new Date().getTime();
+
+        // remove old tags
+        existingItem.tags.forEach(function(item, index, array) {
+          root.tags.removeTag(item);
+        });
+        
+        // add new tags
+        existingItem.tags = entry.tags.slice();
+        existingItem.tags.forEach(function(item, index, array) {
+          root.tags.addTag(item);
+        });
+
+        found = true;
+        break;
+      }
+    };
+
+    if ( false === found ) {
+      throw "Entry not found";
+    }
+  }
+
+  this.validateTagArray = function(tags) {
+    if (! Array.isArray(tags) || tags.length == 0 ) {
+      throw "Expect non-empty tags array";
+    }
+
+    tags.forEach(function(name) {
+        if ( typeof name !== 'string'
+            || '' == name ) {
+        throw "Tags array must contain non-empty string names";
+        }
+    });
   }
 
   /**
    * Returns an array of the entries matching the given parameters. If tagName
    * is an empty string, returns all entries.
-   * @type {Array.<object>}
+   * @type {Array.<object>} - the objects in the array are copies of the
+   *   objects in storage.
    */
   this.findEntriesByTagImpl = function(tagName, offset, count) {
     var result = [];
@@ -117,10 +171,11 @@ function InMemoryStorage(jsonData) {
     }
     else {
       // GAS doesn''t support Array.filter
+      var storage = this;
       root.entries.forEach(function(item) {
           for (var i = 0; i < item.tags.length; ++i) {
             if ( item.tags[i] == tagName ) {
-              result.push(item);
+              result.push(storage.copyEntry(item));
               break;
             }
           }
@@ -137,6 +192,8 @@ function InMemoryStorage(jsonData) {
 
   /**
    * Returns the entries sorted by creationTime in descending order.
+   * @type {Array.<object>} - the objects in the array are copies of the
+   *   objects in storage.
    */
   this.getAllEntries = function(offset, count) {
     var entriesClone = root.entries.slice();
@@ -147,14 +204,30 @@ function InMemoryStorage(jsonData) {
     });
 
     var result = [];
-    if (offset < entriesClone.length - 1) {
-      for (var i = offset; i < Math.min(offset + count, entriesClone.length);
-            ++i) {
-          result.push(entriesClone[i]);
+    var upperRange = Math.min(offset + count, entriesClone.length);
+    if (offset < entriesClone.length ) {
+      for (var i = offset; i < upperRange; ++i) {
+          result.push(this.copyEntry(entriesClone[i]));
       }
     }
 
     return result;
+  }
+
+  /**
+   * Returns a new deep-copy of the given entry.
+   * @param entry {object}
+   * @return {object} - copy of
+   */
+  this.copyEntry = function(entry) {
+    var newEntry = {};
+    newEntry.id = entry.id;
+    newEntry.content = entry.content;
+    newEntry.tags = entry.tags.slice();
+    newEntry.creationTime = entry.creationTime;
+    newEntry.modificationTime = entry.modificationTime;
+
+    return newEntry;
   }
 
   /**

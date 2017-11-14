@@ -134,6 +134,15 @@ function GoogleDriveStorage() {
   }
 
   /**
+   * Updates an existing entry.
+   * @param entry {object}
+   * @throw error if the entry is not valid.
+   */
+  this.updateEntry = function(entry) {
+    inMemoryStorage.updateEntry(entry);
+  }
+
+  /**
    * Writes the data to file and updates the cache.
    * @param cache {CacheService}
    * @param rawData {string}
