@@ -23,3 +23,20 @@ npm install --save-dev sinon
 ```
 
 Run the tests using `npm test`.
+
+## Deployment
+The webapp has two deployment modes: production and development. The mode is
+controlled by the value of `GoogleDriveStorage.IN_DEV_MODE`.
+
+When in production mode, data is written to this Goole Drive location: 
+*zzz-brain-dump/brain-dump.json*.
+
+When in dev mode, the file would be at *zzz-brain-dump-dev/brain-dump.json*.
+
+Here are the steps to do to publish a new version (i.e. production release):
+
+1. Set the value of `GoogleDriveStorage.IN_DEV_MODE` to `true`;
+2. Push the code to Google Drive (if not editting directly in Google Drive);
+3. Open the Script project in Google Drive, click on Publish -> Deploy as Web app
+and set the "Project version" to "new". Click Update afterward.
+4. Set the value of `GoogleDriveStorage.IN_DEV_MODE` to `false`.

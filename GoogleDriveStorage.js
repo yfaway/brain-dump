@@ -4,13 +4,24 @@
  * Drive file.
  */
 function GoogleDriveStorage() {
-  var FOLDER_NAME = "__brain_dump__";
+  /**
+   * This is needed because GAS doesn't offer any API to determine the
+   * webapp deployment mode.
+   */
+  var IN_DEV_MODE = true;
+
+  var FOLDER_NAME = "zzz-brain-dump";
   var FILE_NAME = "brain-dump.json";
   var CACHE_KEY_PREFIX = "raw-data";
   var CACHE_DURATION_IN_SECONDS = 60 * 30; // 30 minutes
 
   // GAS allows 100KB, but we just round it down
   var CACHE_MAX_VALUE_SIZE_IN_BYTES = 100000;
+
+  if ( IN_DEV_MODE ) {
+    FOLDER_NAME += "-dev";
+    CACHE_KEY_PREFIX += "-dev";
+  }
 
   var inMemoryStorage;
   var file;
@@ -21,6 +32,7 @@ function GoogleDriveStorage() {
    * object. The file will be created if it does not exist.
    */
   this.initalize = function() {
+
     var rawData = this.readRawDataFromCache(cache);
 
     if ( null == rawData ) {
